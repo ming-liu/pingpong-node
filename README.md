@@ -14,7 +14,7 @@
 	+ 近支持text/plain类型的Content-Type
 	
 + 使用说明
-	+ 基于nodejs ,首先安装nodejs。
+	+ 基于nodejs ,首先安装nodejs。(开发时，本地使用的node版本是v0.10.28)
 	+ 端口号配置，修改```pingpong.properties``` 。
 	+ 启动直接执行 ``` node main ``` 即可
 	+ 通过修改rules.config来修改匹配规则及返回结果。规则与结果使用```:```隔开。或者在启动后通过```/config```页面来配置。(例如:http://127.0.0.1:8080/config ) 。页面提供了新增和删除的功能。<b>在页面上的改动，不会记录到配置文件中，重启服务后丢失。</b>。如下图：
