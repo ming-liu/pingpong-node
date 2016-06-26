@@ -1,13 +1,12 @@
 console.log('hello pingpong-node');
 
-var config_port = 8080;
-
 var http = require("http");
 var url = require("url");
 var fs = require("fs")
 var query = require("querystring"); //解析POST请求
 var random = require('./random');
 
+var config_port = initPort();
 var configs = initConfig();
 var html = initHtml();
 
@@ -123,5 +122,9 @@ function initConfig() {
 		map[line.substring(0,index)] = line.substring(index+1);
 	}
 	return map;
+}
+
+function initPort() {
+	return fs.readFileSync("pingpong.properties").toString().split(require('os').EOL)[0].split(":")[1];
 }
 
