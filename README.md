@@ -19,5 +19,9 @@
 	+ 启动直接执行 ``` node main ``` 即可
 	+ 通过修改rules.config来修改匹配规则及返回结果。规则与结果使用```:```隔开。或者在启动后通过```/config```页面来配置。(例如:http://127.0.0.1:8080/config ) 。页面提供了新增和删除的功能。<b>在页面上的改动，不会记录到配置文件中，重启服务后丢失。</b>。如下图：
 		![](https://github.com/ming-liu/pingpong-node/blob/master/config.png)
-	+ 规则基于正则表达式，匹配的优先级即为插入规则的顺序。
+	+ 规则基于正则表达式，匹配的优先级即为插入规则的顺序。举例
+		+ 买AAPL时返回{status:0},买GOOGL时返回{status:1},卖MSFT时返回{status:2}。
+		+ ```.*buy?stock=AAPL.*:{"status": 0}```
+		+ ```.*buy?stock=GOOGL.*:{"status": 1}```
+		+ ```.*sell?stock=MSFT.*:{"status": 2}```
 	
