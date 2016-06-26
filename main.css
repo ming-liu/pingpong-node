@@ -1,0 +1,27 @@
+table {
+	border: solid 1px black;
+	border-collapse: collapse;
+}
+table th,td {
+	border: solid 1px black;
+	border-collapse: collapse;
+	padding: 5px;
+}
+table tr {
+	border: solid 1px black;
+}
+
+.op {
+	border: solid 1px #cccccc;
+	margin-top: 30px;
+	width: 300px;
+	padding: 10px;
+}
+
+.op input {
+	margin: 5px 10px;
+	width: 150px;
+}
+.disc {
+	
+}
