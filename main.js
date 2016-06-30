@@ -6,6 +6,7 @@ var fs = require("fs")
 var query = require("querystring"); //解析POST请求
 var random = require('./random');
 
+var mapIndex = 0;
 var config_port = initPort();
 var configs = initConfig();
 var html = initHtml();
@@ -53,11 +54,15 @@ function static(path,response) {
  * 配置页面
  */
 function config() {
-	var result = "<div><table><tr><th>编号</th><th>规则(正则表达式)</th><th>返回结果</th><th>操作</th></tr>";
+	var result = "<div><table><tr><th>编号</th><th>规则(正则表达式)</th><th>返回格式</th><th>签名</th><th>返回结果</th><th>操作</th></tr>";
 	var index = 0;
 	for(var each in configs) {
 		result += '<tr><td>' + index + "</td><td>";
-		result += each;
+		result += each.substring(5);
+		result += '</td><td>';
+		result += returnType(each.substring(3,4));
+		result += '</td><td>';
+		result += boolStr(each.substring(4,5));
 		result += '</td><td>';
 		result += configs[each];
 		result += '</td><td><input type="button" value="删除" onclick="window.location=\'delete?id=';
@@ -68,15 +73,32 @@ function config() {
 	return result;
 }
 
+/**
+ * 返回类型
+ */
+function returnType(type) {
+	if (type == 1) {
+		return "xml";
+	}
+	return "json";
+}
+
+function boolStr(value) {
+	if(value == 1) {
+		return "是";
+	}
+	return "否";
+}
+
 function save(request,response) {
 	var postdata = "";
 	request.on('data', function(data) { postdata += data; });
 	//POST结束输出结果
     request.addListener("end",function(){
 	    var params = query.parse(postdata);
-	    configs[params["r"]] = params["resp"];
-
-
+	    var key = params["ft"] + params["sn"] + params["r"];
+	    configs[indexStr(mapIndex++) + key] = params["resp"];
+	    console.log(configs);
 	    response.writeHead(301, {
         	location:"config"
       	});
@@ -101,7 +123,7 @@ function dispatch(path) {
 	var responseBody = 'pingpong';
 
 	for(var each in configs) {
-		if (path.match(each)) {
+		if (path.match(each.substring(2))) {
 			responseBody = random.replace(configs[each]);
 			break;	
 		}
@@ -116,15 +138,25 @@ function initHtml() {
 function initConfig() {
 	var map = new Object();
 	var lines = fs.readFileSync("rules.config").toString().split(require('os').EOL);
-	for (var i = 0; i < lines.length; i++) {
-		var line = lines[i];
+	for (mapIndex = 0; mapIndex < lines.length; mapIndex++) {
+		var line = lines[mapIndex];
 		var index = line.indexOf(":");
-		map[line.substring(0,index)] = line.substring(index+1);
+		map[indexStr(mapIndex) + line.substring(0,index)] = line.substring(index+1);
 	}
+	console.log(map);
 	return map;
 }
 
 function initPort() {
 	return fs.readFileSync("pingpong.properties").toString().split(require('os').EOL)[0].split(":")[1];
+}
+
+function indexStr(value) {
+	if(value < 10) {
+		return "00" + value;
+	} else if (value < 100) {
+		return "0" + value;
+	}
+	return value;
 }
 

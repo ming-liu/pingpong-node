@@ -22,6 +22,10 @@ table tr {
 	margin: 5px 10px;
 	width: 150px;
 }
+.op select {
+	margin: 5px 10px;
+	width: 150px;
+}
 .disc {
 	
 }
