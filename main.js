@@ -1,10 +1,15 @@
 console.log('hello pingpong-node');
 
+var FORMAT_JSON = "0";
+var FORMAT_XML = "1";
+var SIGN = "1";
+
 var http = require("http");
 var url = require("url");
 var fs = require("fs")
 var query = require("querystring"); //解析POST请求
 var random = require('./random');
+var sign = require('./sign');
 
 var mapIndex = 0;
 var config_port = initPort();
@@ -58,11 +63,11 @@ function config() {
 	var index = 0;
 	for(var each in configs) {
 		result += '<tr><td>' + index + "</td><td>";
-		result += each.substring(5);
+		result += each.substring(7);
 		result += '</td><td>';
-		result += returnType(each.substring(3,4));
+		result += returnType(each.substring(4,5));
 		result += '</td><td>';
-		result += boolStr(each.substring(4,5));
+		result += boolStr(each.substring(5,6));
 		result += '</td><td>';
 		result += configs[each];
 		result += '</td><td><input type="button" value="删除" onclick="window.location=\'delete?id=';
@@ -96,7 +101,7 @@ function save(request,response) {
 	//POST结束输出结果
     request.addListener("end",function(){
 	    var params = query.parse(postdata);
-	    var key = params["ft"] + params["sn"] + params["r"];
+	    var key = "[" + params["ft"] + params["sn"] + "]" + params["r"];
 	    configs[indexStr(mapIndex++) + key] = params["resp"];
 	    console.log(configs);
 	    response.writeHead(301, {
@@ -123,8 +128,27 @@ function dispatch(path) {
 	var responseBody = 'pingpong';
 
 	for(var each in configs) {
-		if (path.match(each.substring(2))) {
+		if (path.match(each.substring(7))) {
+			var type = each.substring(4,5);
+			var signable = each.substring(5,6);
+			
 			responseBody = random.replace(configs[each]);
+			if (SIGN == signable) {
+				var returnRule = JSON.parse(responseBody);
+				returnRule = sign.sign(returnRule);
+				responseBody = JSON.stringify(returnRule);
+			}
+			if (FORMAT_XML == type) {
+				var xmlBuf = "<root>";
+				for(var each in returnRule) {
+					xmlBuf += "<" + each + ">";
+					xmlBuf += returnRule[each];
+					xmlBuf += "</" + each + ">";
+				}
+				xmlBuf += "</root>";
+				responseBody = xmlBuf;
+				console.log(responseBody);
+			}
 			break;	
 		}
 	}
@@ -141,9 +165,12 @@ function initConfig() {
 	for (mapIndex = 0; mapIndex < lines.length; mapIndex++) {
 		var line = lines[mapIndex];
 		var index = line.indexOf(":");
-		map[indexStr(mapIndex) + line.substring(0,index)] = line.substring(index+1);
+		var key = indexStr(mapIndex) + line.substring(0,index);
+		map[key] = line.substring(index+1);
+		//console.log(JSON.parse(map[key]));
 	}
 	console.log(map);
+	//console.log(map.keys);
 	return map;
 }
 
