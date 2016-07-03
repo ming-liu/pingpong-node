@@ -10,14 +10,17 @@ var fs = require("fs")
 var query = require("querystring"); //解析POST请求
 var random = require('./random');
 var sign = require('./sign');
+var configs = require('./config');
 
 var mapIndex = 0;
-var config_port = initPort();
-var configs = initConfig();
+var config_port = configs.get("server_port");
+var signKey = configs.get("sign_key");
+var rules = initRules();
 var html = initHtml();
 
 http.createServer(function(request,response) {
 	var path = url.parse(request.url).path;
+	console.log(path);
 	var responseBody;
 	if(path == "/config") {
 		response.writeHead(200,{'Content-Type': 'text/html'});
@@ -29,8 +32,7 @@ http.createServer(function(request,response) {
 	} else if(path.indexOf("css") != -1) {
 		responseBody = static(path.substring(1),response);
 	} else {
-		response.writeHead(200,{'Content-Type': 'text/plain'});	
-		responseBody = dispatch(path);
+		responseBody = dispatch(path,response);
 	}
 	
 	if(responseBody != null) {
@@ -61,7 +63,7 @@ function static(path,response) {
 function config() {
 	var result = "<div><table><tr><th>编号</th><th>规则(正则表达式)</th><th>返回格式</th><th>签名</th><th>返回结果</th><th>操作</th></tr>";
 	var index = 0;
-	for(var each in configs) {
+	for(var each in rules) {
 		result += '<tr><td>' + index + "</td><td>";
 		result += each.substring(7);
 		result += '</td><td>';
@@ -69,7 +71,7 @@ function config() {
 		result += '</td><td>';
 		result += boolStr(each.substring(5,6));
 		result += '</td><td>';
-		result += configs[each];
+		result += rules[each];
 		result += '</td><td><input type="button" value="删除" onclick="window.location=\'delete?id=';
 		result += index++ + '\'" /></td></tr>';
 	}
@@ -102,8 +104,8 @@ function save(request,response) {
     request.addListener("end",function(){
 	    var params = query.parse(postdata);
 	    var key = "[" + params["ft"] + params["sn"] + "]" + params["r"];
-	    configs[indexStr(mapIndex++) + key] = params["resp"];
-	    console.log(configs);
+	    rules[indexStr(mapIndex++) + key] = params["resp"];
+	    console.log(rules);
 	    response.writeHead(301, {
         	location:"config"
       	});
@@ -114,9 +116,9 @@ function save(request,response) {
 function del(path,response) {
 	var delIndex = path.substring(10);
 	var index = 0;
-	for(var each in configs) {
+	for(var each in rules) {
 		if (index++ == delIndex) {
-			delete configs[each];
+			delete rules[each];
 			break;	
 		}
 	}
@@ -124,21 +126,23 @@ function del(path,response) {
 	response.end();
 }
 
-function dispatch(path) {
+function dispatch(path,response) {
+	response.writeHead(200,{'Content-Type': 'text/plain'});	
 	var responseBody = 'pingpong';
 
-	for(var each in configs) {
+	for(var each in rules) {
 		if (path.match(each.substring(7))) {
 			var type = each.substring(4,5);
 			var signable = each.substring(5,6);
 			
-			responseBody = random.replace(configs[each]);
+			responseBody = random.replace(rules[each]);
 			if (SIGN == signable) {
 				var returnRule = JSON.parse(responseBody);
-				returnRule = sign.sign(returnRule);
+				returnRule = sign.sign(returnRule,signKey);
 				responseBody = JSON.stringify(returnRule);
 			}
 			if (FORMAT_XML == type) {
+				response.writeHead(200,{'Content-Type': 'text/xml'});	
 				var xmlBuf = "<root>";
 				for(var each in returnRule) {
 					xmlBuf += "<" + each + ">";
@@ -147,7 +151,6 @@ function dispatch(path) {
 				}
 				xmlBuf += "</root>";
 				responseBody = xmlBuf;
-				console.log(responseBody);
 			}
 			break;	
 		}
@@ -159,7 +162,7 @@ function initHtml() {
 	return fs.readFileSync("op.html").toString();
 }
 
-function initConfig() {
+function initRules() {
 	var map = new Object();
 	var lines = fs.readFileSync("rules.config").toString().split(require('os').EOL);
 	for (mapIndex = 0; mapIndex < lines.length; mapIndex++) {
@@ -167,15 +170,9 @@ function initConfig() {
 		var index = line.indexOf(":");
 		var key = indexStr(mapIndex) + line.substring(0,index);
 		map[key] = line.substring(index+1);
-		//console.log(JSON.parse(map[key]));
 	}
 	console.log(map);
-	//console.log(map.keys);
 	return map;
-}
-
-function initPort() {
-	return fs.readFileSync("pingpong.properties").toString().split(require('os').EOL)[0].split(":")[1];
 }
 
 function indexStr(value) {

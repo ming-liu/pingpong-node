@@ -14,7 +14,7 @@ table tr {
 .op {
 	border: solid 1px #cccccc;
 	margin-top: 30px;
-	width: 300px;
+	width: 700px;
 	padding: 10px;
 }
 
@@ -22,10 +22,16 @@ table tr {
 	margin: 5px 10px;
 	width: 150px;
 }
+#r {
+	margin: 5px 10px;
+	width: 600px;
+}
 .op select {
 	margin: 5px 10px;
 	width: 150px;
 }
-.disc {
-	
+.op textarea {
+	margin: 5px 10px;
+	width: 600px;
+	height: 50px;
 }

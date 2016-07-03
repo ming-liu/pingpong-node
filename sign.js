@@ -1,7 +1,6 @@
 var crypto = require("crypto");
-var signKey = "kk";
 
-function sign(map) {
+function sign(map,signKey) {
 	var index = 0;
 	var array = new Array();
 	for(var key in map) {
