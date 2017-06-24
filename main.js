@@ -2,6 +2,7 @@ console.log('hello pingpong-node');
 
 var FORMAT_JSON = "0";
 var FORMAT_XML = "1";
+var FORMAT_REDIRECT = "2";
 var SIGN = "1";
 
 var http = require("http");
@@ -86,6 +87,8 @@ function config() {
 function returnType(type) {
 	if (type == 1) {
 		return "xml";
+	} else if(type == 2) {
+		return "redirect";
 	}
 	return "json";
 }
@@ -151,7 +154,10 @@ function dispatch(path,response) {
 				}
 				xmlBuf += "</root>";
 				responseBody = xmlBuf;
+			} else if(FORMAT_REDIRECT == type) {
+				response.writeHead(301, {location:responseBody});
 			}
+
 			break;	
 		}
 	}
