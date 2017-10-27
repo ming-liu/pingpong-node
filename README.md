@@ -1,6 +1,6 @@
 # pingpong-node
 
-### 此项目一个轻量的挡板系统。或者说是http接口的mock佛工具。
+### 此项目一个轻量的挡板系统。或者说是http接口的mock工具。
 
 + 用途
 	+ mock http接口
